@@ -1,15 +1,45 @@
-#include "../432hw3/Timer.h"
-#include "../432hw3/UdpSocket.h"
+#include "Timer.h"
+#include "UdpSocket.h"
 
 #define TIMEOUT_INTERVAL = 1500
 
-/**/
+int handleAck(UdpSocket &sock, Timer clock, int message[]);
+
+/*
+ * sends message[] and receives an acknowledgment from the server max (=20,000) times using the sock object.
+ * If the client cannot receive an acknowledgment immediately, it should start a Timer.
+ * If a timeout occurs (i.e., no response after 1500 usec), the client must resend the same message.
+ * The function must count the number of messages retransmitted and return it to the main function as its return value.
+ */
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
-    int numResent = 0;
-    return numResent;
+    int retransmitCount=0;
+    Timer clock= new Timer();
+    for (int i=0; i<max; i++){
+        message[0]=i;
+        sock.sendTo((char *)message, sizeof(message));
+        int response;
+        if (pollRecvFrom()>0 && recvFrom((char *)response, sizeof(response))&&response==i)
+            continue;
+        clock.start();
+        retransmitCount+=handleAck(sock, clock, message);
+    }
+    return retransmitCount;
 }
 
-/**/
+int handleAck(UdpSocket &sock, Timer clock, int message[]){
+    while(!(pollRecvFrom()>0 && recvFrom((char *)response, sizeof(response))&&response==i)){
+        if (clock.lap()>=TIMEOUT_INTERVAL){
+            sock.sendTo((char *)message, sizeof(message));
+            retransmitCount++;
+            return 1+=handleAck(sock, clock, message);
+        }
+    }
+    return 0;
+}
+
+/*
+ * repeats receiving message[] and sending an acknowledgment at a server side max (=20,000) times using the sock object.
+ */
 void serverReliable( UdpSocket &sock, const int max, int message[]) {
     for (int i = 0; i < max; i++) {
         while (1) {
