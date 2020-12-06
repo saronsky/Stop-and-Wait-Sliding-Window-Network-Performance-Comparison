@@ -5,7 +5,7 @@
 
 /**/
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
-    int numResent = 0;
+    /*int numResent = 0;
     for (int i = 0; i < max; i++) {
         message[0] = i;
         sock.sendTo((char*)message, MSGSIZE);
@@ -36,6 +36,19 @@ int clientStopWait( UdpSocket &sock, const int max, int message[]) {
         }
     }
     return numResent;
+     */
+    int retransmitCount=0;
+    Timer clock= new Timer();
+    for (int i=0; i<max; i++){
+        message[0]=i;
+        sock.sendTo((char *)message, sizeof(message));
+        int response;
+        if (pollRecvFrom()>0 && recvFrom((char *)response, sizeof(response))&&response==i)
+            continue;
+        clock.start();
+        retransmitCount+=handleAck(sock, clock, message);
+    }
+    return retransmitCount;
 }
 
 /**/
