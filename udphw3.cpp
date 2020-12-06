@@ -1,7 +1,7 @@
-#include "../432hw3/Timer.h"
-#include "../432hw3/UdpSocket.h"
+#include "Timer.h"
+#include "UdpSocket.h"
 
-#define TIMEOUT_INTERVAL = 1500 //timeout of 1500usec
+#define TIMEOUT_INTERVAL 1500 //timeout of 1500usec
 
 /**/
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
@@ -11,7 +11,7 @@ int clientStopWait( UdpSocket &sock, const int max, int message[]) {
         sock.sendTo((char*)message, MSGSIZE);
         bool timeoutFlag = 0;
         Timer time;
-        time.start()
+        time.start();
         while (1) {
             if (sock.pollRecvFrom() > 0) {
                 break; //because there is data to receive
