@@ -1,19 +1,21 @@
 #include "Timer.h"
 #include "UdpSocket.h"
 
-#define TIMEOUT_INTERVAL 1500 //timeout of 1500usec
+#define TIMEOUT_INTERVAL 300 //timeout of 1500usec
 
 /**/
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
-    /*int numResent = 0;
+    int numResent = 0;
     for (int i = 0; i < max; i++) {
+		//message[0] is packet #; see hw3.cpp's unreliable test
         message[0] = i;
         sock.sendTo((char*)message, MSGSIZE);
-        bool timeoutFlag = 0;
+        bool timeoutFlag = false;
         Timer time;
         time.start();
         while (1) {
-            if (sock.pollRecvFrom() > 0) {
+			int numBytesToRecv = sock.pollRecvFrom();
+            if (numBytesToRecv > 0) {
                 break; //because there is data to receive
             }
             if (time.lap() > TIMEOUT_INTERVAL && !timeoutFlag) {
@@ -22,7 +24,7 @@ int clientStopWait( UdpSocket &sock, const int max, int message[]) {
             }
         }
         if (timeoutFlag) {
-            //increment numResent and then go back to the beginning of this transmission
+            //we timed out; resend
             i--;
             numResent++;
             continue;
@@ -36,19 +38,6 @@ int clientStopWait( UdpSocket &sock, const int max, int message[]) {
         }
     }
     return numResent;
-     */
-    int retransmitCount=0;
-    Timer clock= new Timer();
-    for (int i=0; i<max; i++){
-        message[0]=i;
-        sock.sendTo((char *)message, sizeof(message));
-        int response;
-        if (pollRecvFrom()>0 && recvFrom((char *)response, sizeof(response))&&response==i)
-            continue;
-        clock.start();
-        retransmitCount+=handleAck(sock, clock, message);
-    }
-    return retransmitCount;
 }
 
 /**/
@@ -74,19 +63,21 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
     int numResent = 0;
     bool timeoutFlag = 0;
     for (int i = 0; i < max; i++) {
-
+		
+		//if we have empty slots, send a packet until we have all slots filled
         if (numUnacked < windowSize) {
             message[0] = i;
             sock.sendTo((char*)message, MSGSIZE);
             numUnacked++;
         }
 
+		//if we have a full queue, start processing data
         if (numUnacked == windowSize) {
             Timer time;
             time.start();
             while (1) {
-
-                if (sock.pollRecvFrom() > 0) {
+				int numBytesToRecv = sock.pollRecvFrom();
+                if (numBytesToRecv > 0) {
                     sock.recvFrom((char*)message, MSGSIZE);
                     if (message[0] == lastAck) {
                         lastAck++;
@@ -94,6 +85,7 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
                         break;
                     }
                 }
+				//
                 if (time.lap() > TIMEOUT_INTERVAL && numUnacked == windowSize) {
                     numResent = numResent + (i + windowSize - lastAck);
                     i = lastAck;
