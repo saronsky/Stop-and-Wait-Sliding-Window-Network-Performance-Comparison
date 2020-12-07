@@ -1,7 +1,7 @@
 #include "Timer.h"
 #include "UdpSocket.h"
 
-#define TIMEOUT_INTERVAL 300 //timeout of 1500usec
+#define TIMEOUT_INTERVAL 1500 //timeout of 1500usec
 
 /**/
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
