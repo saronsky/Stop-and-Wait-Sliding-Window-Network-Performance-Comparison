@@ -99,10 +99,14 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
 }
 
 /**/
-void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], int windowSize) {
+void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], int windowSize, int dropRate) {
     for (int i = 0; i < max; i++) {
         while (1) {
             if (sock.pollRecvFrom() > 0) {
+                int randomNum = rand() % 101;
+                if (randomNum > dropRate) {
+                    continue;
+                }
                 sock.recvFrom((char *) message, MSGSIZE);
                 sock.ackTo((char *) &i, sizeof(int));
                 if (message[0] == i) {

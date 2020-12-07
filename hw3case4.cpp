@@ -23,7 +23,7 @@ void serverUnreliable( UdpSocket &sock, const int max, int message[] );
 // You must implement the following two functions
 void serverReliable( UdpSocket &sock, const int max, int message[] );
 void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], 
-			 int windowSize );
+			 int windowSize , int dropRate);
 //void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], 
 //			 int windowSize, bool congestion );
 
@@ -51,7 +51,8 @@ int main( int argc, char *argv[] ) {
   cerr << "Choose a testcase" << endl;
   cerr << "   1: unreliable test" << endl;
   cerr << "   2: stop-and-wait test" << endl;
-  cerr << "   3: sliding windows" << endl;
+  cerr << "   3: sliding window size 1" << endl;
+  cerr << "   4: sliding window size 30" << endl;
   cerr << "--> ";
   cin >> testNumber;
 
@@ -59,7 +60,7 @@ int main( int argc, char *argv[] ) {
 
     Timer timer;           // define a timer
     int retransmits = 0;   // # retransmissions
-
+    int windowSize = 0;    //window size
     switch( testNumber ) {
     case 1:
       timer.start( );                                          // start timer
@@ -75,16 +76,32 @@ int main( int argc, char *argv[] ) {
       cerr << "retransmits = " << retransmits << endl;
       break;
     case 3:
-      for ( int windowSize = 1; windowSize <= MAXWIN; windowSize++ ) {
-	timer.start( );                                        // start timer
-	retransmits =
-	clientSlidingWindow( sock, MAX, message, windowSize ); // actual test
-	cerr << "Window size = ";                              // lap timer
-	cout << windowSize << " ";
-	cerr << "Elasped time = "; 
-	cout << timer.lap( ) << endl;
-	cerr << "retransmits = " << retransmits << endl;
-      }
+        windowSize = 1;
+        for (int dropRate = 0; dropRate <= 10; dropRate++) {
+              timer.start();                                        // start timer
+              retransmits = clientSlidingWindow(sock, MAX, message, windowSize); // actual test
+              cerr << "Drop rate = ";
+              cout << dropRate << " ";
+              cerr << "Window size = ";                              // lap timer
+              cout << windowSize << " ";
+              cerr << "Elasped time = ";
+              cout << timer.lap() << endl;
+              cerr << "retransmits = " << retransmits << endl;
+        }
+      break;
+    case 4:
+        windowSize = 30;
+        for (int dropRate = 0; dropRate <= 10; dropRate++) {
+                timer.start();                                        // start timer
+                retransmits = clientSlidingWindow(sock, MAX, message, windowSize); // actual test
+                cerr << "Drop rate = ";
+                cout << dropRate << " ";
+                cerr << "Window size = ";                              // lap timer
+                cout << windowSize << " ";
+                cerr << "Elasped time = ";
+                cout << timer.lap() << endl;
+                cerr << "retransmits = " << retransmits << endl;
+        }
       break;
     default:
       cerr << "no such test case" << endl;
@@ -92,6 +109,7 @@ int main( int argc, char *argv[] ) {
     }
   }
   if ( myPart == SERVER ) {
+      int windowSize = 0;
     switch( testNumber ) {
     case 1:
       serverUnreliable( sock, MAX, message );
@@ -100,8 +118,16 @@ int main( int argc, char *argv[] ) {
       serverReliable( sock, MAX, message );
       break;
     case 3:
-      for ( int windowSize = 1; windowSize <= MAXWIN; windowSize++ )
-	serverEarlyRetrans( sock, MAX, message, windowSize );
+        windowSize = 1;
+      for (int dropRate = 0; dropRate <= 10; dropRate++) {
+	        serverEarlyRetrans( sock, MAX, message, windowSize, dropRate);
+      }
+      break;
+    case 4:
+          windowSize = 30;
+          for (int dropRate = 0; dropRate <= 10; dropRate++) {
+              serverEarlyRetrans( sock, MAX, message, windowSize, dropRate);
+          }
       break;
     default:
       cerr << "no such test case" << endl;
