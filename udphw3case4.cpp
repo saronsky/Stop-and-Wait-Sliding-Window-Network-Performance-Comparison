@@ -106,7 +106,7 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
                     numResent = numResent + (i + windowSize - lastAck);
                     i = lastAck;
                     numUnacked = 0;
-                    break;
+                    continue;
                 }
             }
         }
@@ -126,7 +126,7 @@ void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], int wind
         while (1) {
             if (sock.pollRecvFrom() > 0) {
                 int randomNum = rand() % 101;
-                if (randomNum > dropRate) {
+                if (randomNum < dropRate) {
                     continue;
                 }
                 sock.recvFrom((char *) message, MSGSIZE);
