@@ -7,14 +7,14 @@
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
     int numResent = 0;
     for (int i = 0; i < max; i++) {
-		//message[0] is packet #; see hw3.cpp's unreliable test
+        //message[0] is packet #; see hw3.cpp's unreliable test
         message[0] = i;
         sock.sendTo((char*)message, MSGSIZE);
         bool timeoutFlag = false;
         Timer time;
         time.start();
         while (1) {
-			int numBytesToRecv = sock.pollRecvFrom();
+            int numBytesToRecv = sock.pollRecvFrom();
             if (numBytesToRecv > 0) {
                 break; //because there is data to receive
             }
@@ -63,20 +63,20 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
     int numResent = 0;
     bool timeoutFlag = 0;
     for (int i = 0; i < max; i++) {
-		
-		//if we have empty slots, send a packet until we have all slots filled
+
+        //if we have empty slots, send a packet until we have all slots filled
         if (numUnacked < windowSize) {
             message[0] = i;
             sock.sendTo((char*)message, MSGSIZE);
             numUnacked++;
         }
 
-		//if we have a full queue, start processing data
+        //if we have a full queue, start processing data
         if (numUnacked == windowSize) {
             Timer time;
             time.start();
             while (1) {
-				int numBytesToRecv = sock.pollRecvFrom();
+                int numBytesToRecv = sock.pollRecvFrom();
                 if (numBytesToRecv > 0) {
                     sock.recvFrom((char*)message, MSGSIZE);
                     if (message[0] == lastAck) {
@@ -85,12 +85,12 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
                         break;
                     }
                 }
-				//
+                //
                 if (time.lap() > TIMEOUT_INTERVAL && numUnacked == windowSize) {
                     numResent = numResent + (i + windowSize - lastAck);
                     i = lastAck;
                     numUnacked = 0;
-                    break;
+                    continue;
                 }
             }
         }

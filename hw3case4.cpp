@@ -92,7 +92,7 @@ int main( int argc, char *argv[] ) {
     case 4:
         windowSize = 30;
         for (int dropRate = 0; dropRate <= 10; dropRate++) {
-                timer.start();                                        // start timer
+                timer.start(); // start timer
                 retransmits = clientSlidingWindow(sock, MAX, message, windowSize); // actual test
                 cerr << "Drop rate = ";
                 cout << dropRate << " ";
