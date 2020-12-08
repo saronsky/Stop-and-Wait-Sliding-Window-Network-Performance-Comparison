@@ -3,7 +3,12 @@
 
 #define TIMEOUT_INTERVAL 1500 //timeout of 1500usec
 
-/**/
+/* clientStopWait: stop and wait protocol for receiving from a UDP socket
+ * @param sock - UdpSocket descriptor
+ * @param max - number of packets that we are receiving
+ * @param message - message to be sent over the socket
+ * @return number of resent transmissions
+ * */
 int clientStopWait( UdpSocket &sock, const int max, int message[]) {
     int numResent = 0;
     for (int i = 0; i < max; i++) {
@@ -40,7 +45,11 @@ int clientStopWait( UdpSocket &sock, const int max, int message[]) {
     return numResent;
 }
 
-/**/
+/* serverReliable: stop and wait protocol for receiving from a UDP socket as a server
+ * @param sock - UdpSocket descriptor
+ * @param max - number of packets that we are receiving
+ * @param message - message to be sent over the socket
+ * */
 void serverReliable( UdpSocket &sock, const int max, int message[]) {
     for (int i = 0; i < max; i++) {
         while (1) {
@@ -56,7 +65,13 @@ void serverReliable( UdpSocket &sock, const int max, int message[]) {
     }
 }
 
-/**/
+/* clientSlidingWindow: sliding window protocol for receiving from a UDP socket
+ * @param sock - UdpSocket descriptor
+ * @param max - number of packets that we are receiving
+ * @param message - message to be sent over the socket
+ * @param windowSize - window size to be used for the sliding window
+ * @return number of resent transmissions
+ * */
 int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int windowSize) {
     int lastAck = 0;
     int numUnacked = 0;
@@ -85,7 +100,7 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
                         break;
                     }
                 }
-				//
+                //we timed out; resend entire message
                 if (time.lap() > TIMEOUT_INTERVAL && numUnacked == windowSize) {
                     numResent = numResent + (i + windowSize - lastAck);
                     i = lastAck;
@@ -98,7 +113,12 @@ int clientSlidingWindow( UdpSocket &sock, const int max, int message[], int wind
     return numResent;
 }
 
-/**/
+/* serverEarlyRetrans: sliding window protocol for receiving from a UDP socket as a server
+ * @param sock - UdpSocket descriptor
+ * @param max - number of packets that we are receiving
+ * @param message - message to be sent over the socket
+ * @param windowSize - window size to be used for the sliding window
+ * */
 void serverEarlyRetrans( UdpSocket &sock, const int max, int message[], int windowSize) {
     for (int i = 0; i < max; i++) {
         while (1) {

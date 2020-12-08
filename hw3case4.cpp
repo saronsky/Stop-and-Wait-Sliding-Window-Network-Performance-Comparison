@@ -9,6 +9,10 @@ using namespace std;
 #define MAXWIN 30        // the maximum window size
 #define LOOP 10          // loop in test 4 and 5
 
+/* Test case 3 has been modified and an additional test (#4) was added to be able to get
+ * data for the window size 1 and 30 with variable random drop rates
+ * */
+
 // client packet sending functions
 void clientUnreliable( UdpSocket &sock, const int max, int message[] );
 // You must implement the following two functions
